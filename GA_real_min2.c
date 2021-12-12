@@ -14,9 +14,10 @@ a gene ranging from -100 to 100.
 
 #define P 50
 #define N 20
-#define MAX 1
-#define MIN 0
+#define MAX 5.12
+#define MIN -5.12
 #define ITERATIONS 50
+#define FUNCTION_CHOICE 1 // 0, 1, 2
 
 float MUTRATE = 0.05;
 float MUT_ALTER = 50;
@@ -36,12 +37,28 @@ individual current_best;
 float test_function(individual ind){
 
     float utility = 0;
-    // count 'ones'
+
+    
     for (int i = 0; i < N-1; i++){
 
-        float gene_fitness = 100 * (pow(ind.gene[i+1] - pow(ind.gene[i], 2), 2) + pow(1-ind.gene[i], 2));
-        utility += gene_fitness;
+        float gene_fitness;
+        if (FUNCTION_CHOICE == 0) 
+        {
+            //sum((x[i+1] - x^2)^2 + (1 - x)^2)
+            gene_fitness = 100 * (pow(ind.gene[i+1] - pow(ind.gene[i], 2), 2) + pow(1-ind.gene[i], 2));
+            utility += gene_fitness;
+        }
+        else if (FUNCTION_CHOICE == 1)
+        {
+            /*10*N + sum(x^2 - 10.cos(2*PI*x))----------------------*/
+            gene_fitness = pow(ind.gene[i], 2) - 10 * cos(2*M_PI*ind.gene[i]);
+            utility += gene_fitness;
+        }
+
     }
+    if (FUNCTION_CHOICE == 1)
+       utility += 10*N;
+    
     return utility;
 }
 
@@ -55,7 +72,10 @@ void seed(void) {
     for (int i = 0; i< P; i++){
         for (int j = 0; j < N; j++){
             // setting each gene to a random binary digit
-            population[i].gene[j] = roundf(((rand()%20001/100.0) - 100) * 100) / 100;;//(rand()%199) - 100 + (rand()%1001/1000.0);
+            if (FUNCTION_CHOICE == 0)
+                population[i].gene[j] = rand()%(int)((MAX - MIN)* 100)/100.0 + MIN;//roundf(((rand()%20001/100.0) - 100) * 100) / 100;//(rand()%199) - 100 + (rand()%1001/1000.0);
+            else if (FUNCTION_CHOICE == 1)
+                population[i].gene[j] = rand()%(int)((MAX - MIN)* 100)/100.0 + MIN; // -5.12 < x < 5.12
         }
         population[i].fitness = test_function(population[i]);
     }
